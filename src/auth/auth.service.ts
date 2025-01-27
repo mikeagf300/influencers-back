@@ -1,28 +1,64 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { User } from '../users/entities/user.entity';  // Asegúrate de que la entidad User esté importada
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    @InjectRepository(User) private userRepository: Repository<User>,  // Inyecta el repositorio de User
+    private readonly jwtService: JwtService
+  ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
-    // Aquí puedes realizar la validación contra tu base de datos
-    const user = { username: 'admin', password: await bcrypt.hash('admin123', 10) , role: 'admin' }; // Ejemplo de usuario con rol admin
-    const isMatch = await bcrypt.compare(password, user.password);
+    const user = await this.userRepository.findOne({ where: { email: username } });
 
-    if (user && isMatch) {
-      const { password, ...result } = user;
-      return result;
+    if (!user) {
+      throw new UnauthorizedException('Usuario o contraseña inválidos');
     }
 
-    throw new UnauthorizedException('Usuario o contraseña inválidos');
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (isMatch) {
+      const { password, ...result } = user; // Eliminamos la contraseña del resultado
+      return result;
+    } else {
+      throw new UnauthorizedException('Usuario o contraseña inválidos');
+    }
   }
 
   async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+    const payload = { username: user.email, sub: user.id };  // Usa el email y id del usuario
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
+
+  async register(createUserDto: CreateUserDto): Promise<any> {
+    // Verificar si el correo ya existe
+    const existingUser = await this.userRepository.findOne({ where: { email: createUserDto.email } });
+    if (existingUser) {
+      throw new ConflictException('El correo ya está registrado');
+    }
+
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+    // Crear un nuevo usuario
+    const newUser = this.userRepository.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+
+    // Guardar en la base de datos
+    await this.userRepository.save(newUser);
+
+    // Retornar información del usuario sin la contraseña
+    const { password, ...result } = newUser;
+    return result;
+  }
 }
+

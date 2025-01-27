@@ -3,10 +3,16 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard'; // Guard para verificar rol
 import { Role } from './decorators/role.decorator'; // Decorador para asignar roles
+import { CreateUserDto } from './dtos/create-user.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  async register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto);
+  }
 
   @Post('login')
   async login(@Body() body: { username: string; password: string }) {
