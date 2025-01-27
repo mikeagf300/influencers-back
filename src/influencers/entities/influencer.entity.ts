@@ -1,3 +1,4 @@
+//influencer.entity.ts
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -13,4 +14,11 @@ export class Influencer {
 
   @Column()
   followers: number;
+
+  @Column({ nullable: true })
+  bio?: string;
+
+  @Column({ nullable: true })
+  email?: string;
 }
+
