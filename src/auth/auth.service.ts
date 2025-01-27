@@ -8,7 +8,7 @@ export class AuthService {
 
   async validateUser(username: string, password: string): Promise<any> {
     // Aquí puedes realizar la validación contra tu base de datos
-    const user = { username: 'admin', password: await bcrypt.hash('admin123', 10) }; // Simulación
+    const user = { username: 'admin', password: await bcrypt.hash('admin123', 10) , role: 'admin' }; // Ejemplo de usuario con rol admin
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (user && isMatch) {
