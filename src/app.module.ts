@@ -5,6 +5,8 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { InfluencersModule } from './influencers/influencers.module';
 import { AuthModule } from './auth/auth.module';
+import { TwitterController } from './twitter/twitter.controller';
+import { TwitterService } from './twitter/twitter.service';
 
 @Module({
   imports: [
@@ -21,7 +23,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     InfluencersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, TwitterController],
+  providers: [AppService, TwitterService],
 })
 export class AppModule {}
