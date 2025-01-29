@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards, Get, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard'; // Guard para verificar rol
@@ -16,9 +23,11 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: { username: string; password: string }) {
-    return this.authService.validateUser(body.username, body.password).then(user => {
-      return this.authService.login(user);
-    });
+    return this.authService
+      .validateUser(body.username, body.password)
+      .then((user) => {
+        return this.authService.login(user);
+      });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -29,10 +38,9 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Role('admin')  // Asegura que el rol sea 'admin'
+  @Role('admin') // Asegura que el rol sea 'admin'
   @Get('admin-dashboard')
   getAdminDashboard(@Request() req) {
     return { message: 'Bienvenido al panel de administración', user: req.user };
   }
-
 }

@@ -6,22 +6,19 @@ export class TwitterService {
   private twitterClient: TwitterApi;
 
   constructor() {
-    // Asegúrate de que las credenciales son correctas en tu archivo .env
-    this.twitterClient = new TwitterApi({
-      bearerToken: process.env.TWITTER_BEARER_TOKEN, // Usamos Bearer Token
-      accessToken: process.env.TWITTER_ACCESS_TOKEN, // Usamos Access Token
-      accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET, // Usamos Access Token Secret
-    });
+    // Inicializamos el cliente con el Bearer Token
+    this.twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN || '');
   }
 
   async getRecentTweetsByUser(username: string) {
     try {
-      // Obtiene el usuario de Twitter
+      // Obtiene información del usuario por nombre de usuario
       const user = await this.twitterClient.v2.userByUsername(username);
 
-      // Obtiene los últimos tweets del usuario
+      // Obtiene la línea de tiempo del usuario (tweets recientes)
       const tweets = await this.twitterClient.v2.userTimeline(user.data.id, {
-        max_results: 5, // El número de tweets que quieres obtener
+        max_results: 5, // Define cuántos tweets quieres obtener
+        'tweet.fields': ['created_at', 'text'], // Campos adicionales para incluir
       });
 
       return tweets.data;

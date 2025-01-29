@@ -1,20 +1,26 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { User } from '../users/entities/user.entity';  // Asegúrate de que la entidad User esté importada
+import { User } from '../users/entities/user.entity'; // Asegúrate de que la entidad User esté importada
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,  // Inyecta el repositorio de User
-    private readonly jwtService: JwtService
+    @InjectRepository(User) private userRepository: Repository<User>, // Inyecta el repositorio de User
+    private readonly jwtService: JwtService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
-    const user = await this.userRepository.findOne({ where: { email: username } });
+    const user = await this.userRepository.findOne({
+      where: { email: username },
+    });
 
     if (!user) {
       throw new UnauthorizedException('Usuario o contraseña inválidos');
@@ -31,15 +37,23 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { username: user.email, sub: user.id };  // Usa el email y id del usuario
+    const payload = { username: user.username, sub: user.id }; // puedes agregar más datos si lo necesitas
+    const accessToken = this.jwtService.sign(payload);
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: accessToken,
+      user: {
+        name: user.name,
+        email: user.email, // Agregar los datos necesarios
+      },
     };
   }
 
   async register(createUserDto: CreateUserDto): Promise<any> {
     // Verificar si el correo ya existe
-    const existingUser = await this.userRepository.findOne({ where: { email: createUserDto.email } });
+    const existingUser = await this.userRepository.findOne({
+      where: { email: createUserDto.email },
+    });
     if (existingUser) {
       throw new ConflictException('El correo ya está registrado');
     }
@@ -61,4 +75,3 @@ export class AuthService {
     return result;
   }
 }
-
